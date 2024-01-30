@@ -1,7 +1,8 @@
-from PIL import Image, ImageFilter
 import os
 import re
 import numpy as np
+from data.constants import *
+from PIL import Image, ImageFilter
 
 def create_directory(directory_path:str):
   os.makedirs(directory_path, exist_ok=True)
@@ -255,14 +256,13 @@ def convert_to_black_and_white(image, save_results, threshold, file_name="black_
     """
     
     try:
-        print(f'Convert to BW: {file_name}')
         bw_img = image.convert("L")
 
         # Apply a threshold to convert to pure black and white
         bw_threshold = bw_img.point(lambda p: 0 if p < threshold else 255, '1')
 
         if save_results:
-          directory_name = os.path.join('post_process','black_and_white')
+          directory_name = os.path.join('post_process', 'black_and_white')
           create_directory(directory_name)
           path = os.path.join(directory_name, f'{file_name}.png')
           bw_threshold.save(path, format='png')
@@ -274,7 +274,7 @@ def convert_to_black_and_white(image, save_results, threshold, file_name="black_
         return None
     
 
-def resize_image(file_path, new_size):
+def resize_image(new_size=DEFAULT_SIZE, file_path=None, image=None):
     
     """
     Resizes the given image.
@@ -285,8 +285,11 @@ def resize_image(file_path, new_size):
         The resized image.
     """
     
-    # Open an image using PIL
-    image = Image.open(file_path)
+    # Open the image if not already opened
+    assert file_path or image, "Either file_path or image must be specified"
+    
+    if not image:
+        image = Image.open(file_path)
 
     # Resize the image
     resized_image = image.resize(new_size)

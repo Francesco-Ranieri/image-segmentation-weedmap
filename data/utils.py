@@ -18,18 +18,24 @@ def remove_files_with_extension(folder_path, extension_to_remove):
                     print(f"Error removing {file_path}: {e}")
 
 
-def load_data_path():
+def load_data_path(root_path=TILES_PATH):
     """
     Returns a list of tuples (image_path, label_path) for the dataset.
     """
     
     data = {}
     
-    for drone_dir in os.listdir(TILES_PATH):
+    drone_dirs = os.listdir(root_path)
+    drone_dirs.sort()
+    for drone_dir in drone_dirs:
         data[drone_dir] = {}
-        for image_dir in os.listdir(os.path.join(TILES_PATH, drone_dir)):
+        image_dirs = os.listdir(os.path.join(TILES_PATH, drone_dir))
+        image_dirs.sort()
+        for image_dir in image_dirs:
             data[drone_dir][image_dir] = {}
-            for sub_dir in os.listdir(os.path.join(TILES_PATH, drone_dir, image_dir)):
+            sub_dirs = os.listdir(os.path.join(TILES_PATH, drone_dir, image_dir))
+            sub_dirs.sort()
+            for sub_dir in sub_dirs:
                 
                 dir_path = os.path.join(TILES_PATH, drone_dir, image_dir, sub_dir)
                 
