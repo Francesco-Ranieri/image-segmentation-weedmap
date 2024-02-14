@@ -1,0 +1,9 @@
+transformers
+pillow
+torch torchvision torchaudio # --index-url https://download.pytorch.org/whl/cu118
+matplotlib
+opencv-python
+rembg
+scikit-learn
+optuna
+comet_ml

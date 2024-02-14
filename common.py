@@ -57,13 +57,11 @@ def delete_experiment_files(experiment_path=None):
   # Check if the experiment path is empty
   if not experiment_path:
       raise ValueError("Error: 'experiment_path' must not be empty")
-  
-  experiment_path = os.path.join(EXPERIMENT_PATH, experiment_path)
 
   # Prompt the user for confirmation
-  confirmation = input(f"Are you sure you want to delete the directory '{experiment_path}'? (yes/no): ")
+  # confirmation = input(f"Are you sure you want to delete the directory '{experiment_path}'? (yes/no): ")
 
   # Check the user's input
-  if confirmation.lower() == "yes" or confirmation.lower() == "":
-      shutil.rmtree(experiment_path)
-      print("Deletion cancelled.")
+  # if confirmation.lower() == "yes" or confirmation.lower() == "":
+  shutil.rmtree(experiment_path)
+  print("Deletion cancelled.")

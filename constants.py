@@ -6,3 +6,5 @@ CLUSTERING = "clustering"
 # ------------------------
 
 EXPERIMENT_PATH = 'experiments'
+OPTUNA = 'optuna'
+BASELINE = 'baseline'

@@ -1,4 +1,6 @@
 import os
+from PIL import Image
+from data.processing import convert_to_black_and_white
 from data.constants import *
 
 
@@ -44,13 +46,14 @@ def load_data_path(root_path=TILES_PATH):
                     data[drone_dir][image_dir][GROUND_TRUTH] = gt_imgs
                 
                 elif sub_dir == TILE:
-                    if drone_dir == SEQUOIA:
-                        dir_path = os.path.join(dir_path, SEQUIOA_CHANNEL)
-                    elif drone_dir == RED_EDGE:
-                        dir_path = os.path.join(dir_path, RED_EDGE_CHANNEL)
-                    tile_imgs = [os.path.join(dir_path, path) for path in os.listdir(dir_path)]
-                    data[drone_dir][image_dir][TILE] = tile_imgs
+                    data[drone_dir][image_dir][TILE] = {}
+                    channel_dirs = os.listdir(dir_path)
                     
+                    for channel in  channel_dirs:
+                        channel_path = os.path.join(dir_path, channel)
+                        tile_imgs = [os.path.join(channel_path, path) for path in os.listdir(channel_path)]
+                        data[drone_dir][image_dir][TILE][channel] = tile_imgs
+
                 elif sub_dir == MASK:
                     mask_imgs = [os.path.join(dir_path, path) for path in os.listdir(dir_path)]
                     data[drone_dir][image_dir][MASK] = mask_imgs
@@ -58,5 +61,50 @@ def load_data_path(root_path=TILES_PATH):
     return data                  
 
 
-# remove_files_with_extension(TILES_PATH, BLACKLIST)
-# load_data_path()
+def load_split_data(target_channel=NVDI_CHANNEL, 
+                    test_image=['003', '005'],
+                    open_image=False):
+
+    data = load_data_path()
+    
+    train_tiles = {}
+    train_gt = {}
+    test_tiles = {}
+    test_gt = {}
+    
+    for drone, images in data.items():
+        
+        train_tiles[drone] = {}
+        train_gt[drone] = {}
+        test_tiles[drone] = {}
+        test_gt[drone] = {}  
+        
+        print('Drone:', drone)
+        for image, image_data in images.items():
+            tiles = image_data[TILE][target_channel]
+            gts = image_data[GROUND_TRUTH]
+            print('     Image:', image)
+            
+            if image in test_image:  
+                test_tiles[drone][image] = []
+                test_gt[drone][image] = [] 
+                if open_image:
+                    test_tiles[drone][image].extend([Image.open(tile) for tile in tiles])
+                    test_gt[drone][image].extend([convert_to_black_and_white(Image.open(gt), save_results=False, threshold=128) for gt in gts])
+                else:
+                    test_tiles[drone][image].extend([tile for tile in tiles])
+                    test_gt[drone][image].extend([gt for gt in gts])
+                       
+            else:
+                train_tiles[drone][image] = []
+                train_gt[drone][image] = []
+                
+                if open_image:
+                    train_tiles[drone][image].extend([Image.open(tile) for tile in tiles])
+                    train_gt[drone][image].extend([convert_to_black_and_white(Image.open(gt), save_results=False, threshold=128) for gt in gts])
+                else:
+                    train_tiles[drone][image].extend([tile for tile in tiles])
+                    train_gt[drone][image].extend([gt for gt in gts])
+    
+    return train_tiles, train_gt, test_tiles, test_gt
+
