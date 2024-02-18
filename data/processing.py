@@ -2,6 +2,7 @@ import os
 import re
 import numpy as np
 from data.constants import *
+from common import get_distinct_files_name_in_dir, search_files_in_dir
 from PIL import Image, ImageFilter
 
 def create_directory(directory_path:str):
@@ -202,7 +203,9 @@ def _assemble_patch(patches, num_splits):
     return assembled_image
 
 
-def reassemble_orthomosaic(dir_path, rows: int = 13):
+def reassemble_orthomosaic(dir_path,
+                           file_name:str ='orthomosaic.png',
+                           rows: int = 13):
     """
     Reassembles the orthomosaic from the given directory.
 
@@ -239,7 +242,7 @@ def reassemble_orthomosaic(dir_path, rows: int = 13):
             x_offset = 0
             y_offset += img.height
 
-    combined_image.save('orthomosaic.png')
+    combined_image.save(file_name)
     
 
 def convert_to_black_and_white(image, save_results, threshold, file_name="black_and_white"):

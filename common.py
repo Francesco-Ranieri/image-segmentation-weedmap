@@ -3,18 +3,12 @@ import re
 import shutil
 import numpy as np
 from constants import *
-
-
-def open_image(image_path:str):
-  if not image_path:
-      raise ValueError("Error: 'image_path' must not be empty")
-
-  image = Image.open(image_path)
-  return image
+from PIL import Image, ImageFilter
 
 
 def extract_image_name(image_path:str):
-  return re.search(r'\d+', image_path).group(0)
+  image_name = image_path.split("\\")[-1]
+  return re.search(r'\d+', image_name).group(0)
 
 
 def extract_patch_name(image_path:str):
