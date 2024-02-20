@@ -15,10 +15,6 @@ def extract_patch_name(image_path:str):
   return re.search(r'\d+_\d+_\d+', image_path).group(0)
 
 
-def create_directory(directory_path:str):
-  os.makedirs(directory_path, exist_ok=True)
-
-
 def search_files_in_dir(directory, sub_string):
     matching_files = []
     for root, dirs, files in os.walk(directory):

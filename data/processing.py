@@ -5,26 +5,14 @@ from data.constants import *
 from common import get_distinct_files_name_in_dir, search_files_in_dir
 from PIL import Image, ImageFilter
 
-def create_directory(directory_path:str):
-  os.makedirs(directory_path, exist_ok=True)
 
-def split_image(image, num_splits, file_name, save_result):
+def split_image(image, num_splits, save_path):
     
     """
     Splits the given image into patches.
-    Args:
-        image: The image to split.
-        num_splits: The number of splits.
-        file_name: The name of the file to save.
-        save_results: Whether to save the results.
-    Returns:
-        The patches.
-    Raises:
-        ValueError: If the number of splits is less than or equal to 1.
     """
-    
-    print(file_name)
-    print(f'- Split image into: {num_splits}')
+    file_name = os.path.splitext(os.path.basename(save_path))[0]
+    print(f'- Split image {file_name} into: {num_splits}')
 
     try:
         width, height = image.size
@@ -46,10 +34,15 @@ def split_image(image, num_splits, file_name, save_result):
             patch = image.crop((left, upper, right, lower))
             patches.append(patch)
 
-            if save_result:
-                directory_name = os.path.join('pre_process', 'patches')
-                create_directory(directory_name)
-                patch.save(os.path.join(directory_name, f'{file_name}_{patch_index}.png'), format='png')
+            if save_path:
+                
+                folder = os.path.dirname(save_path)
+                folder = os.path.join(folder, 'patches')
+                _save_path = os.path.join(folder, file_name)
+                os.makedirs(folder, exist_ok=True)
+                
+                patch.save(f'{_save_path}_{patch_index}.png', format='png')
+                
         return patches
 
     except Exception as e:
@@ -57,28 +50,26 @@ def split_image(image, num_splits, file_name, save_result):
         return None
 
 
-def sharp_image_pil(image, file_name, save_result=True, sharpen_strength=2):
+def sharp_image_pil(image, save_path:str, sharpen_strength=2):
     
     """
     Sharpens the given image.
-    Args:
-        image: The image to sharpen.
-        file_name: The name of the file to save.
-        save_results: Whether to save the results.
-        sharpen_strength: The number of times to apply the filter.
-    Returns:
-        The sharpened image.
     """
-    
+    file_name = os.path.basename(save_path)
     print(f'- Sharp image: {file_name} with strength: {sharpen_strength}')
     try:
         for _ in range(sharpen_strength):
             image = image.filter(ImageFilter.SHARPEN)
 
-        if save_result:
-            directory_name = os.path.join('pre_process', 'sharp')
-            create_directory(directory_name)
-            image.save(f'{directory_name}/{file_name}.png', format='png')
+        if save_path:
+            
+            folder = os.path.dirname(save_path)
+            folder = os.path.join(folder, 'sharp')
+            save_path = os.path.join(folder, file_name)
+            
+            os.makedirs(folder, exist_ok=True)
+            
+            image.save(f'{save_path}.png', format='png')
 
         return image
 
@@ -87,18 +78,13 @@ def sharp_image_pil(image, file_name, save_result=True, sharpen_strength=2):
         return None
 
 
-def enlarge_image(image, file_name, save_result):
+def enlarge_image(image, save_path:str):
   
   """
     Enlarges the given image.
-    Args:
-        image: The image to enlarge.
-        file_name: The name of the file to save.
-        save_results: Whether to save the results.
-    Returns:
-        The enlarged image.
     """ 
     
+  file_name = os.path.basename(save_path)
   print(f'- Enlarge image: {file_name}')
   try:
     # Set the new size for the enlarged image
@@ -109,10 +95,14 @@ def enlarge_image(image, file_name, save_result):
     # Resize the image to the new size
     enlarged_image = image.resize((new_width, new_height), Image.LANCZOS)
 
-    if save_result:
-      directory_name = os.path.join('pre_process', 'enlarged_images')
-      create_directory(directory_name)
-      enlarged_image.save(os.path.join(directory_name, f'{file_name}.png'), format='png')
+    if save_path:
+        
+      folder = os.path.dirname(save_path)
+      folder = os.path.join(folder, 'enlarged')
+      save_path = os.path.join(folder, file_name)
+      
+      os.makedirs(folder, exist_ok=True)
+      enlarged_image.save(f'{save_path}.png', format='png')
     return enlarged_image
 
   except Exception as e:
@@ -121,27 +111,20 @@ def enlarge_image(image, file_name, save_result):
 
 
 
-def assemble_patch(folder_path, num_splits:int = 2, save_results:bool = True):
+def assemble_patch(patch_dir, num_splits:int = 2, save_path:str='frames_predictions', prediction_dir = 'predictions'):
     
     """
     Assembles the patches from the given directory.
-    Args:
-        folder_path: The directory containing the patches.
-        num_splits: The number of splits.
-        save_results: Whether to save the results.
-    Returns:
-        The assembled patches.
-    Raises:
-        ValueError: If the number of splits is less than or equal to 1.
     """
+    
     assembled_patches = []
 
-    patch_to_assemble = get_distinct_files_name_in_dir('predictions')
+    patch_to_assemble = get_distinct_files_name_in_dir(prediction_dir)
 
     for patch in patch_to_assemble:
       patches = []
       for index in range(0, num_splits*2):
-        file_name = search_files_in_dir(folder_path, f'{patch}_{index}_2')[0]
+        file_name = search_files_in_dir(patch_dir, f'{patch}_{index}_2')[0]
         image = Image.open(file_name)
         print(file_name)
         patches.append(image)
@@ -149,12 +132,12 @@ def assemble_patch(folder_path, num_splits:int = 2, save_results:bool = True):
       assembled_image = _assemble_patch(patches, num_splits)
       assembled_patches.append(assembled_image)
 
-      if save_results:
-        patch_name = re.search(r'\d{2,}', file_name).group(0)
-        directory_name = 'frames_predictions'
-        create_directory(directory_name)
-        save_path = os.path.join(directory_name, f"{patch_name}.png")
-        assembled_image.save(save_path)
+      if save_path:
+        
+        os.makedirs(save_path, exist_ok=True)
+        
+        _save_path = os.path.join(save_path, f"{patch}.png")
+        assembled_image.save(_save_path)
 
 
     return assembled_patches
@@ -203,24 +186,17 @@ def _assemble_patch(patches, num_splits):
     return assembled_image
 
 
-def reassemble_orthomosaic(dir_path,
-                           file_name:str ='orthomosaic.png',
+def reassemble_orthomosaic(patch_dir,
+                           save_path:str,
                            rows: int = 13):
     """
     Reassembles the orthomosaic from the given directory.
-
-    Args:
-        dir_path (_type_): _description_
-        rows (int, optional): _description_. Defaults to 13.
-
-    Raises:
-        Exception: _description_
     """
     
-    image_paths = os.listdir(dir_path)
+    image_paths = os.listdir(patch_dir)
     image_paths.sort()
 
-    images = [Image.open(os.path.join(dir_path, image_path)) for image_path in image_paths]
+    images = [Image.open(os.path.join(patch_dir, image_path)) for image_path in image_paths]
 
     # Assicurati che il numero di immagini sia un multiplo del numero di immagini per riga
     if len(images) % rows != 0:
@@ -242,10 +218,13 @@ def reassemble_orthomosaic(dir_path,
             x_offset = 0
             y_offset += img.height
 
-    combined_image.save(file_name)
-    
+    if save_path:
+        folder = os.path.dirname(save_path)
+        os.makedirs(folder, exist_ok=True)
+        combined_image.save(save_path)
 
-def convert_to_black_and_white(image, save_results, threshold, file_name="black_and_white"):
+
+def convert_to_black_and_white(image, threshold, file_name = None):
     
     """
     Converts an image to black and white.
@@ -264,11 +243,10 @@ def convert_to_black_and_white(image, save_results, threshold, file_name="black_
         # Apply a threshold to convert to pure black and white
         bw_threshold = bw_img.point(lambda p: 0 if p < threshold else 255, '1')
 
-        if save_results:
-          directory_name = os.path.join('post_process', 'black_and_white')
-          create_directory(directory_name)
-          path = os.path.join(directory_name, f'{file_name}.png')
-          bw_threshold.save(path, format='png')
+        if file_name:
+            folder = os.path.dirname(file_name)
+            os.makedirs(folder, exist_ok=True)
+            bw_threshold.save(f"{file_name}.png", format='png')
 
         return bw_threshold
 

@@ -101,7 +101,7 @@ def load_split_data(target_channel=NVDI_CHANNEL,
                 test_gt[drone][image] = [] 
                 if open_image:
                     test_tiles[drone][image].extend([Image.open(tile) for tile in tiles])
-                    test_gt[drone][image].extend([convert_to_black_and_white(Image.open(gt), save_results=False, threshold=128) for gt in gts])
+                    test_gt[drone][image].extend([convert_to_black_and_white(Image.open(gt), threshold=128) for gt in gts])
                 else:
                     test_tiles[drone][image].extend([tile for tile in tiles])
                     test_gt[drone][image].extend([gt for gt in gts])
@@ -112,7 +112,7 @@ def load_split_data(target_channel=NVDI_CHANNEL,
                 
                 if open_image:
                     train_tiles[drone][image].extend([Image.open(tile) for tile in tiles])
-                    train_gt[drone][image].extend([convert_to_black_and_white(Image.open(gt), save_results=False, threshold=128) for gt in gts])
+                    train_gt[drone][image].extend([convert_to_black_and_white(Image.open(gt), threshold=128) for gt in gts])
                 else:
                     train_tiles[drone][image].extend([tile for tile in tiles])
                     train_gt[drone][image].extend([gt for gt in gts])
